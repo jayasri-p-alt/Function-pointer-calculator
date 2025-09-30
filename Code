@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef double (*binop_t)(double, double);
+
+/* operation functions */
+double add(double a, double b)   { return a + b; }
+double sub(double a, double b)   { return a - b; }
+double mul(double a, double b)   { return a * b; }
+double divide(double a, double b){
+    if (b == 0.0) {
+        fprintf(stderr, "Error: division by zero\n");
+        exit(EXIT_FAILURE);
+    }
+    return a / b;
+}
+
+/* lookup table item */
+typedef struct {
+    char op;
+    binop_t func;
+} op_entry;
+
+int main(void) {
+    /* table mapping operator char to function pointer */
+    op_entry table[] = {
+        {'+', add},
+        {'-', sub},
+        {'*', mul},
+        {'/', divide}
+    };
+    const int table_size = sizeof(table) / sizeof(table[0]);
+
+    double x, y;
+    char op;
+
+    printf("Function-pointer calculator\n");
+    printf("Enter an expression like: 3.5 + 4.2\n");
+    printf("Supported operators: +  -  *  /\n");
+    printf("Type EOF (Ctrl+D on Unix / Ctrl+Z on Windows) to quit.\n\n");
+
+    /* Read until EOF */
+    while (1) {
+        printf("> ");
+        if (scanf(" %lf %c %lf", &x, &op, &y) != 3) {
+            /* handle EOF or invalid input */
+            if (feof(stdin)) {
+                putchar('\n');
+                break;
+            }
+            fprintf(stderr, "Invalid input. Please type: <num> <op> <num>\n");
+            /* clear invalid token */
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF) {}
+            continue;
+        }
+
+        /* find function for operator */
+        binop_t f = NULL;
+        for (int i = 0; i < table_size; ++i) {
+            if (table[i].op == op) {
+                f = table[i].func;
+                break;
+            }
+        }
+
+        if (f == NULL) {
+            printf("Unsupported operator '%c'. Supported: + - * /\n", op);
+            continue;
+        }
+
+        double result = f(x, y);
+        printf("= %.10g\n", result); /* prints concise, avoids trailing zeros */
+    }
+
+    printf("Goodbye!\n");
+    return 0;
+}# Function-pointer-calculator
+Making the function pointer calculator
